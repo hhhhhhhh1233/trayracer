@@ -33,43 +33,67 @@ int main()
     mat->roughness = 0.3;
     Sphere* ground = new Sphere(1000, { 0,-1000, -1 }, mat);
     rt.AddObject(ground);
+
+    for (int it = 0; it < 200; it++)
+    {
+        {
+            Material* mat = new Material();
+                mat->type = "Lambertian";
+                float r = RandomFloat();
+                float g = RandomFloat();
+                float b = RandomFloat();
+                mat->color = { r,g,b };
+                mat->roughness = RandomFloat();
+                const float span = 10.0f;
+                Sphere* ground = new Sphere(
+                    RandomFloat() * 0.7f + 0.2f,
+                    {
+                        RandomFloatNTP() * span,
+                        RandomFloat() * span + 0.2f,
+                        RandomFloatNTP() * span
+                    },
+                    mat);
+            rt.AddObject(ground);
+        }{
+            Material* mat = new Material();
+            mat->type = "Conductor";
+            float r = RandomFloat();
+            float g = RandomFloat();
+            float b = RandomFloat();
+            mat->color = { r,g,b };
+            mat->roughness = RandomFloat();
+            const float span = 30.0f;
+            Sphere* ground = new Sphere(
+                RandomFloat() * 0.7f + 0.2f,
+                {
+                    RandomFloatNTP() * span,
+                    RandomFloat() * span + 0.2f,
+                    RandomFloatNTP() * span
+                },
+                mat);
+            rt.AddObject(ground);
+        }{
+            Material* mat = new Material();
+            mat->type = "Dielectric";
+            float r = RandomFloat();
+            float g = RandomFloat();
+            float b = RandomFloat();
+            mat->color = { r,g,b };
+            mat->roughness = RandomFloat();
+            mat->refractionIndex = 1.65;
+            const float span = 25.0f;
+            Sphere* ground = new Sphere(
+                RandomFloat() * 0.7f + 0.2f,
+                {
+                    RandomFloatNTP() * span,
+                    RandomFloat() * span + 0.2f,
+                    RandomFloatNTP() * span
+                },
+                mat);
+            rt.AddObject(ground);
+        }
+    }
     
-    mat = new Material();
-    mat->type = "Conductor";
-    mat->color = {1,1,1};
-    mat->roughness = 0.2f;
-    Sphere* test = new Sphere(1, { 0,1,0 }, mat);
-    rt.AddObject(test);
-
-    mat = new Material();
-    mat->type = "Lambertian";
-    mat->color = { 0,0.4,0.6 };
-    mat->roughness = 0.2;
-    test = new Sphere(1, { -4,1,0 }, mat);
-    rt.AddObject(test);
-
-    mat = new Material();
-    mat->type = "Dielectric";
-    mat->color = { 1,0.8,0.7 };
-    mat->roughness = 0.95;
-    mat->refractionIndex = 1.65;
-    test = new Sphere(1, { -4,1, 2 }, mat);
-    rt.AddObject(test);
-
-    mat = new Material();
-    mat->type = "Lambertian";
-    mat->color = { 1,0,0.2 };
-    mat->roughness = 0.04;
-    test = new Sphere(1, { 1,1, -3 }, mat);
-    rt.AddObject(test);
-
-    mat = new Material();
-    mat->type = "Lambertian";
-    mat->color = { 1,1,1 };
-    mat->roughness = 0.0;
-    test = new Sphere(1, { 4,1, 0 }, mat);
-    rt.AddObject(test);
-
     bool exit = false;
 
     // camera

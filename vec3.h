@@ -58,6 +58,16 @@ public:
 
     double x, y, z;
 
+    bool IsNormalized()
+    {
+        return this->isNormalized;
+    }
+
+    bool IsZero()
+    {
+        return this->isZero;
+    }
+
 private:
     // Calculate if the vector is normalized
     void UpdateIsNormalizedVariable();

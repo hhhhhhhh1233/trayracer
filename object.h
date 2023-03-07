@@ -3,6 +3,7 @@
 #include "color.h"
 #include <float.h>
 #include <string>
+#include <memory>
 
 class Object;
 
@@ -19,6 +20,56 @@ struct HitResult
     Object* object = nullptr;
     // intersection distance
     float t = FLT_MAX;
+};
+
+template<class TYPE>
+class Optional
+{
+public:
+    Optional() {}
+    Optional(HitResult hit) : hasValue(true)
+    {
+        this->value = std::make_shared<HitResult>(hit);
+    }
+
+    bool HasValue()
+    {
+        // check if this object has a value.
+        if (this->hasValue)
+        {
+            // doublecheck the value
+            if (value == nullptr)
+            {
+                return false;
+            }
+            if (value != nullptr)
+            {
+                // doublecheck the value content.
+                if (value->object == nullptr)
+                {
+                    return false;
+                }
+                if (value->normal.IsZero())
+                {
+                    return false;
+                }
+            }
+        }
+        else
+        {
+            return false;
+        }
+        return true;
+    }
+    HitResult Get()
+    {
+        assert(this->HasValue());
+        return *value;
+    }
+
+private:
+    bool hasValue = false;
+    std::shared_ptr<HitResult> value = nullptr;
 };
 
 //------------------------------------------------------------------------------
@@ -49,9 +100,9 @@ public:
         delete name;
     }
 
-    virtual bool Intersect(HitResult& hit, Ray ray, float maxDist) = 0;
+    virtual Optional<HitResult> Intersect(Ray ray, float maxDist) { return {}; };
     virtual Color GetColor() = 0;
-    virtual Ray ScatterRay(Ray ray, vec3 point, vec3 normal) = 0;
+    virtual Ray ScatterRay(Ray ray, vec3 point, vec3 normal) { return Ray({ 0,0,0 }, {1,1,1}); };
 
 private:
     volatile bool isBigObject = false;
