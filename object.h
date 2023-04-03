@@ -80,6 +80,8 @@ class Object
 public:
     Object() 
     {
+        static unsigned long long idCounter = 0;
+        id = idCounter++;
         // Reserve characters for naming this object something!
         name = new char[256];
         name[0] = 'U';
@@ -103,9 +105,12 @@ public:
     virtual Optional<HitResult> Intersect(Ray ray, float maxDist) { return {}; };
     virtual Color GetColor() = 0;
     virtual Ray ScatterRay(Ray ray, vec3 point, vec3 normal) { return Ray({ 0,0,0 }, {1,1,1}); };
+    std::string GetName() { return std::string((const char*)name); }
+    unsigned long long GetId() { return this->id; }
 
 private:
     volatile bool isBigObject = false;
     volatile char* name;
+    unsigned long long id;
     std::string purpose;
 };

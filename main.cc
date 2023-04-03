@@ -34,7 +34,7 @@ int main()
     Sphere* ground = new Sphere(1000, { 0,-1000, -1 }, mat);
     rt.AddObject(ground);
 
-    for (int it = 0; it < 200; it++)
+    for (int it = 0; it < 12; it++)
     {
         {
             Material* mat = new Material();
