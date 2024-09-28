@@ -101,7 +101,6 @@ int main(int argc, char *argv[])
     float roty = 0;
 
     {
-
         mat4 xMat = (rotationx(rotx));
         mat4 yMat = (rotationy(roty));
         mat4 cameraTransform = multiply(yMat, xMat);
@@ -125,25 +124,18 @@ int main(int argc, char *argv[])
 		std::cout << "Max Bounces: " << maxBounces << "\n";
 
 		std::vector<uint8_t> framebufferInt;
-		std::vector<uint8_t> framebufferForwards;
 
-		for (Color const& pixel : framebuffer)
-		{
-			framebufferInt.push_back(std::clamp(int(pixel.r * 255), 0, 255));
-			framebufferInt.push_back(std::clamp(int(pixel.g * 255), 0, 255));
-			framebufferInt.push_back(std::clamp(int(pixel.b * 255), 0, 255));
-		}
-
-		// Flip the image horizontally since it's upside down for some reason I'm not super sure about
 		for (int y = h - 1; y >= 0; y--)
 		{
-			for (int x = 0; x < w * 3; x++)
+			for (int x = 0; x < w; x++)
 			{
-				framebufferForwards.push_back(framebufferInt[(w * 3) * y + x]);
+				framebufferInt.push_back(std::clamp(int(framebuffer[w * y + x].r * 255), 0, 255));
+				framebufferInt.push_back(std::clamp(int(framebuffer[w * y + x].g * 255), 0, 255));
+				framebufferInt.push_back(std::clamp(int(framebuffer[w * y + x].b * 255), 0, 255));
 			}
 		}
 
-		stbi_write_png("Pic.png", w, h, 3, framebufferForwards.data(), w*3);
+		stbi_write_png("Frame.png", w, h, 3, framebufferInt.data(), w*3);
     }
 
     return 0;
