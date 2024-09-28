@@ -1,4 +1,5 @@
 #include "raytracer.h"
+#include <iostream>
 #include <random>
 #include <algorithm>
 
@@ -18,13 +19,14 @@ Raytracer::Raytracer(unsigned w, unsigned h, std::vector<Color>& frameBuffer, un
 //------------------------------------------------------------------------------
 /**
 */
-void
+unsigned int
 Raytracer::Raytrace()
 {
     static int leet = 1337;
     std::mt19937 generator (leet++);
     std::uniform_real_distribution<float> dis(0.0f, 1.0f);
 
+	unsigned int NumberOfTraces = 0;
     for (int x = 0; x < this->width; ++x)
     {
         for (int y = 0; y < this->height; ++y)
@@ -40,6 +42,7 @@ Raytracer::Raytrace()
                 
                 Ray* ray = new Ray(get_position(this->view), direction);
                 color += this->TracePath(*ray, 0);
+				NumberOfTraces++;
                 delete ray;
             }
 
@@ -51,6 +54,7 @@ Raytracer::Raytrace()
             this->frameBuffer[y * this->width + x] += color;
         }
     }
+	return NumberOfTraces;
 }
 
 //------------------------------------------------------------------------------

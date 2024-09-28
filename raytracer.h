@@ -17,7 +17,7 @@ public:
     ~Raytracer() { }
 
     // start raytracing!
-    void Raytrace();
+    unsigned int Raytrace();
 
     // add object to scene
     void AddObject(Object* obj);

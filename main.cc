@@ -17,6 +17,7 @@
 
 int main(int argc, char *argv[])
 { 
+	// Default values that can be overriden by commandline arguments
 	unsigned w = 400;
 	unsigned h = 300;
     int raysPerPixel = 1;
@@ -30,22 +31,22 @@ int main(int argc, char *argv[])
 			i++;
 			w = std::stoi(argv[i]);
 		}
-		if (std::string(argv[i]).compare("-h") == 0)
+		else if (std::string(argv[i]).compare("-h") == 0)
 		{
 			i++;
 			h = std::stoi(argv[i]);
 		}
-		if (std::string(argv[i]).compare("-rpp") == 0)
+		else if (std::string(argv[i]).compare("-rpp") == 0)
 		{
 			i++;
 			raysPerPixel = std::stoi(argv[i]);
 		}
-		if (std::string(argv[i]).compare("-mb") == 0)
+		else if (std::string(argv[i]).compare("-mb") == 0)
 		{
 			i++;
 			maxBounces = std::stoi(argv[i]);
 		}
-		if (std::string(argv[i]).compare("-ns") == 0)
+		else if (std::string(argv[i]).compare("-ns") == 0)
 		{
 			i++;
 			spheresAmount = std::stoi(argv[i]);
@@ -72,66 +73,39 @@ int main(int argc, char *argv[])
 
     for (int it = 0; it < spheresAmount; it++)
     {
-		{
-            Material* mat = new Material();
-            mat->type = Types[it % 3];
-			if (it % 3 == 1)
-				mat->refractionIndex = 1.65;
-            float r = RandomFloat();
-            float g = RandomFloat();
-            float b = RandomFloat();
-            mat->color = { r,g,b };
-            mat->roughness = RandomFloat();
-            const float span = Spans[it % 3];
-            Sphere* ground = new Sphere(
-                RandomFloat() * 0.7f + 0.2f,
-                {
-                    RandomFloatNTP() * span,
-                    RandomFloat() * span + 0.2f,
-                    RandomFloatNTP() * span
-                },
-                mat);
-            rt.AddObject(ground);
-        }
+		Material* mat = new Material();
+		mat->type = Types[it % 3];
+		if (it % 3 == 1)
+			mat->refractionIndex = 1.65;
+		float r = RandomFloat();
+		float g = RandomFloat();
+		float b = RandomFloat();
+		mat->color = { r,g,b };
+		mat->roughness = RandomFloat();
+		const float span = Spans[it % 3];
+		Sphere* ground = new Sphere(
+			RandomFloat() * 0.7f + 0.2f,
+			{
+				RandomFloatNTP() * span,
+				RandomFloat() * span + 0.2f,
+				RandomFloatNTP() * span
+			},
+			mat);
+		rt.AddObject(ground);
 	}
     
-    bool exit = false;
-
     // camera
-    bool resetFramebuffer = false;
     vec3 camPos = { 0,1.0f,10.0f };
-    vec3 moveDir = { 0,0,0 };
-
-    float pitch = 0;
-    float yaw = 0;
-    float oldx = 0;
-    float oldy = 0;
 
     float rotx = 0;
     float roty = 0;
 
-    // number of accumulated frames
-    int frameIndex = 0;
-
-    std::vector<Color> framebufferCopy;
-    framebufferCopy.resize(w * h);
-
     {
-        resetFramebuffer = false;
-        moveDir = {0,0,0};
-        pitch = 0;
-        yaw = 0;
-
-        rotx -= pitch;
-        roty -= yaw;
-
-        moveDir = normalize(moveDir);
 
         mat4 xMat = (rotationx(rotx));
         mat4 yMat = (rotationy(roty));
         mat4 cameraTransform = multiply(yMat, xMat);
 
-        camPos = camPos + transform(moveDir * 0.2f, cameraTransform);
         
         cameraTransform.m30 = camPos.x;
         cameraTransform.m31 = camPos.y;
@@ -139,50 +113,37 @@ int main(int argc, char *argv[])
 
         rt.SetViewMatrix(cameraTransform);
         
-        if (resetFramebuffer)
-        {
-            rt.Clear();
-            frameIndex = 0;
-        }
-
-        rt.Raytrace();
+        int NumberOfRays = rt.Raytrace();
 		auto end = std::chrono::high_resolution_clock::now();
 		auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
+
 		std::cout << "Time: " << duration.count()/1000.0f << "\n";
+		std::cout << "Number of Rays: " << NumberOfRays << "\n";
+		std::cout << "MRays/s: " << (NumberOfRays/1'000'000.0f)/(duration.count()/1000.0f) << "\n";
 		std::cout << "Resolution: " << w << "x" << h << "\n";
 		std::cout << "Rays Per Pixel: " << raysPerPixel << "\n";
 		std::cout << "Max Bounces: " << maxBounces << "\n";
-        frameIndex++;
 
-		std::vector<uint8_t> framebufferCopyTest;
-		std::vector<uint8_t> forwards;
+		std::vector<uint8_t> framebufferInt;
+		std::vector<uint8_t> framebufferForwards;
 
-        // Get the average distribution of all samples
-        {
-            size_t p = 0;
-            for (Color const& pixel : framebuffer)
-            {
-                framebufferCopy[p] = pixel;
-                framebufferCopy[p].r /= frameIndex;
-                framebufferCopy[p].g /= frameIndex;
-                framebufferCopy[p].b /= frameIndex;
-				framebufferCopyTest.push_back(std::clamp(int(framebufferCopy[p].r * 255), 0, 255));
-				framebufferCopyTest.push_back(std::clamp(int(framebufferCopy[p].g * 255), 0, 255));
-				framebufferCopyTest.push_back(std::clamp(int(framebufferCopy[p].b * 255), 0, 255));
-                p++;
-            }
-        }
+		for (Color const& pixel : framebuffer)
+		{
+			framebufferInt.push_back(std::clamp(int(pixel.r * 255), 0, 255));
+			framebufferInt.push_back(std::clamp(int(pixel.g * 255), 0, 255));
+			framebufferInt.push_back(std::clamp(int(pixel.b * 255), 0, 255));
+		}
 
+		// Flip the image horizontally since it's upside down for some reason I'm not super sure about
 		for (int y = h - 1; y >= 0; y--)
 		{
 			for (int x = 0; x < w * 3; x++)
 			{
-				forwards.push_back(framebufferCopyTest[(w * 3) * y + x]);
+				framebufferForwards.push_back(framebufferInt[(w * 3) * y + x]);
 			}
 		}
 
-		stbi_write_png("Pic.png", w, h, 3, forwards.data(), w*3);
-
+		stbi_write_png("Pic.png", w, h, 3, framebufferForwards.data(), w*3);
     }
 
     return 0;
