@@ -46,19 +46,10 @@ int main(int argc, char *argv[])
 		}
 	}
 
-    // Display::Window wnd;
-    
-    // wnd.SetTitle("TrayRacer");
-    // 
-    // if (!wnd.Open())
-    //     return 1;
-
+	auto start = std::chrono::high_resolution_clock::now();
     std::vector<Color> framebuffer;
 
-    // const unsigned w = 400;
-    // const unsigned h = 300;
     framebuffer.resize(w * h);
-    
 
     Raytracer rt = Raytracer(w, h, framebuffer, raysPerPixel, maxBounces);
 
@@ -137,57 +128,10 @@ int main(int argc, char *argv[])
     vec3 camPos = { 0,1.0f,10.0f };
     vec3 moveDir = { 0,0,0 };
 
-    // wnd.SetKeyPressFunction([&exit, &moveDir, &resetFramebuffer](int key, int scancode, int action, int mods)
-    // {
-    //     switch (key)
-    //     {
-    //     case GLFW_KEY_ESCAPE:
-    //         exit = true;
-    //         break;
-    //     case GLFW_KEY_W:
-    //         moveDir.z -= 1.0f;
-    //         resetFramebuffer |= true;
-    //         break;
-    //     case GLFW_KEY_S:
-    //         moveDir.z += 1.0f;
-    //         resetFramebuffer |= true;
-    //         break;
-    //     case GLFW_KEY_A:
-    //         moveDir.x -= 1.0f;
-    //         resetFramebuffer |= true;
-    //         break;
-    //     case GLFW_KEY_D:
-    //         moveDir.x += 1.0f;
-    //         resetFramebuffer |= true;
-    //         break;
-    //     case GLFW_KEY_SPACE:
-    //         moveDir.y += 1.0f;
-    //         resetFramebuffer |= true;
-    //         break;
-    //     case GLFW_KEY_LEFT_CONTROL:
-    //         moveDir.y -= 1.0f;
-    //         resetFramebuffer |= true;
-    //         break;
-    //     default:
-    //         break;
-    //     }
-    // });
-
     float pitch = 0;
     float yaw = 0;
     float oldx = 0;
     float oldy = 0;
-
-    // wnd.SetMouseMoveFunction([&pitch, &yaw, &oldx, &oldy, &resetFramebuffer](double x, double y)
-    // {
-    //     x *= -0.1;
-    //     y *= -0.1;
-    //     yaw = x - oldx;
-    //     pitch = y - oldy;
-    //     resetFramebuffer |= true;
-    //     oldx = x;
-    //     oldy = y;
-    // });
 
     float rotx = 0;
     float roty = 0;
@@ -198,16 +142,11 @@ int main(int argc, char *argv[])
     std::vector<Color> framebufferCopy;
     framebufferCopy.resize(w * h);
 
-    // rendering loop
-    // while (wnd.IsOpen() && !exit)
     {
         resetFramebuffer = false;
         moveDir = {0,0,0};
         pitch = 0;
         yaw = 0;
-
-        // poll input
-        // wnd.Update();
 
         rotx -= pitch;
         roty -= yaw;
@@ -232,7 +171,6 @@ int main(int argc, char *argv[])
             frameIndex = 0;
         }
 
-		auto start = std::chrono::high_resolution_clock::now();
         rt.Raytrace();
 		auto end = std::chrono::high_resolution_clock::now();
 		auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
@@ -254,15 +192,9 @@ int main(int argc, char *argv[])
                 framebufferCopy[p].r /= frameIndex;
                 framebufferCopy[p].g /= frameIndex;
                 framebufferCopy[p].b /= frameIndex;
-				// Color c;
-				// c.r = 10;
-				// c.g = 10;
-				// c.b = 10;
-				// std::cout << "R: " << framebufferCopy[p].r << "\n";
 				framebufferCopyTest.push_back(std::clamp(int(framebufferCopy[p].r * 255), 0, 255));
 				framebufferCopyTest.push_back(std::clamp(int(framebufferCopy[p].g * 255), 0, 255));
 				framebufferCopyTest.push_back(std::clamp(int(framebufferCopy[p].b * 255), 0, 255));
-				// int i = std::clamp(int(framebufferCopy[p].b * 255), 0, 255);
                 p++;
             }
         }
@@ -275,18 +207,9 @@ int main(int argc, char *argv[])
 			}
 		}
 
-
 		stbi_write_png("Pic.png", w, h, 3, forwards.data(), w*3);
 
-        // glClearColor(0, 0, 0, 1.0);
-        // glClear( GL_COLOR_BUFFER_BIT );
-
-        // wnd.Blit((float*)&framebufferCopy[0], w, h);
-        // wnd.SwapBuffers();
     }
-
-    // if (wnd.IsOpen())
-    //     wnd.Close();
 
     return 0;
 } 
