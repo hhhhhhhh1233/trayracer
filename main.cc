@@ -21,6 +21,7 @@ int main(int argc, char *argv[])
 	unsigned h = 300;
     int raysPerPixel = 1;
     int maxBounces = 5;
+	int spheresAmount = 36;
 
 	for (int i = 0; i < argc; i++)
 	{
@@ -44,6 +45,11 @@ int main(int argc, char *argv[])
 			i++;
 			maxBounces = std::stoi(argv[i]);
 		}
+		if (std::string(argv[i]).compare("-ns") == 0)
+		{
+			i++;
+			spheresAmount = std::stoi(argv[i]);
+		}
 	}
 
 	auto start = std::chrono::high_resolution_clock::now();
@@ -54,61 +60,29 @@ int main(int argc, char *argv[])
     Raytracer rt = Raytracer(w, h, framebuffer, raysPerPixel, maxBounces);
 
     // Create some objects
-    Material* mat = new Material();
-    mat->type = "Lambertian";
-    mat->color = { 0.5,0.5,0.5 };
-    mat->roughness = 0.3;
-    Sphere* ground = new Sphere(1000, { 0,-1000, -1 }, mat);
-    rt.AddObject(ground);
+	Material* mat = new Material();
+	mat->type = "Lambertian";
+	mat->color = { 0.5,0.5,0.5 };
+	mat->roughness = 0.3;
+	Sphere* ground = new Sphere(1000, { 0,-1000, -1 }, mat);
+	rt.AddObject(ground);
 
-    for (int it = 0; it < 12; it++)
+	std::vector<std::string> Types = {"Lambertian", "Dielectric", "Conductor"};
+	std::vector<float> Spans = {10, 30, 25};
+
+    for (int it = 0; it < spheresAmount; it++)
     {
-        {
+		{
             Material* mat = new Material();
-                mat->type = "Lambertian";
-                float r = RandomFloat();
-                float g = RandomFloat();
-                float b = RandomFloat();
-                mat->color = { r,g,b };
-                mat->roughness = RandomFloat();
-                const float span = 10.0f;
-                Sphere* ground = new Sphere(
-                    RandomFloat() * 0.7f + 0.2f,
-                    {
-                        RandomFloatNTP() * span,
-                        RandomFloat() * span + 0.2f,
-                        RandomFloatNTP() * span
-                    },
-                    mat);
-            rt.AddObject(ground);
-        }{
-            Material* mat = new Material();
-            mat->type = "Conductor";
+            mat->type = Types[it % 3];
+			if (it % 3 == 1)
+				mat->refractionIndex = 1.65;
             float r = RandomFloat();
             float g = RandomFloat();
             float b = RandomFloat();
             mat->color = { r,g,b };
             mat->roughness = RandomFloat();
-            const float span = 30.0f;
-            Sphere* ground = new Sphere(
-                RandomFloat() * 0.7f + 0.2f,
-                {
-                    RandomFloatNTP() * span,
-                    RandomFloat() * span + 0.2f,
-                    RandomFloatNTP() * span
-                },
-                mat);
-            rt.AddObject(ground);
-        }{
-            Material* mat = new Material();
-            mat->type = "Dielectric";
-            float r = RandomFloat();
-            float g = RandomFloat();
-            float b = RandomFloat();
-            mat->color = { r,g,b };
-            mat->roughness = RandomFloat();
-            mat->refractionIndex = 1.65;
-            const float span = 25.0f;
+            const float span = Spans[it % 3];
             Sphere* ground = new Sphere(
                 RandomFloat() * 0.7f + 0.2f,
                 {
@@ -119,7 +93,7 @@ int main(int argc, char *argv[])
                 mat);
             rt.AddObject(ground);
         }
-    }
+	}
     
     bool exit = false;
 
