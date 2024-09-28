@@ -1,4 +1,5 @@
 #include <algorithm>
+#include <chrono>
 #include <iostream>
 #include <stdio.h>
 #include <string>
@@ -18,6 +19,9 @@ int main(int argc, char *argv[])
 { 
 	unsigned w = 400;
 	unsigned h = 300;
+    int raysPerPixel = 1;
+    int maxBounces = 5;
+
 	for (int i = 0; i < argc; i++)
 	{
 		if (std::string(argv[i]).compare("-w") == 0)
@@ -29,6 +33,16 @@ int main(int argc, char *argv[])
 		{
 			i++;
 			h = std::stoi(argv[i]);
+		}
+		if (std::string(argv[i]).compare("-rpp") == 0)
+		{
+			i++;
+			raysPerPixel = std::stoi(argv[i]);
+		}
+		if (std::string(argv[i]).compare("-mb") == 0)
+		{
+			i++;
+			maxBounces = std::stoi(argv[i]);
 		}
 	}
 
@@ -45,8 +59,6 @@ int main(int argc, char *argv[])
     // const unsigned h = 300;
     framebuffer.resize(w * h);
     
-    int raysPerPixel = 1;
-    int maxBounces = 5;
 
     Raytracer rt = Raytracer(w, h, framebuffer, raysPerPixel, maxBounces);
 
@@ -220,7 +232,14 @@ int main(int argc, char *argv[])
             frameIndex = 0;
         }
 
+		auto start = std::chrono::high_resolution_clock::now();
         rt.Raytrace();
+		auto end = std::chrono::high_resolution_clock::now();
+		auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
+		std::cout << "Time: " << duration.count()/1000.0f << "\n";
+		std::cout << "Resolution: " << w << "x" << h << "\n";
+		std::cout << "Rays Per Pixel: " << raysPerPixel << "\n";
+		std::cout << "Max Bounces: " << maxBounces << "\n";
         frameIndex++;
 
 		std::vector<uint8_t> framebufferCopyTest;
