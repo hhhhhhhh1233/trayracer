@@ -1,5 +1,6 @@
 #include "raytracer.h"
 #include <random>
+#include <algorithm>
 
 //------------------------------------------------------------------------------
 /**
