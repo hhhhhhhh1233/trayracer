@@ -56,7 +56,7 @@ int main(int argc, char *argv[])
 	auto start = std::chrono::high_resolution_clock::now();
     std::vector<Color> framebuffer;
 
-    framebuffer.resize(w * h);
+    framebuffer.resize(size_t(w * h));
 
     Raytracer rt = Raytracer(w, h, framebuffer, raysPerPixel, maxBounces);
 
@@ -122,6 +122,7 @@ int main(int argc, char *argv[])
 		std::cout << "Resolution: " << w << "x" << h << "\n";
 		std::cout << "Rays Per Pixel: " << raysPerPixel << "\n";
 		std::cout << "Max Bounces: " << maxBounces << "\n";
+		std::cout << "Number of Spheres: " << spheresAmount << "\n";
 
 		std::vector<uint8_t> framebufferInt;
 
@@ -129,9 +130,9 @@ int main(int argc, char *argv[])
 		{
 			for (int x = 0; x < w; x++)
 			{
-				framebufferInt.push_back(std::clamp(int(framebuffer[w * y + x].r * 255), 0, 255));
-				framebufferInt.push_back(std::clamp(int(framebuffer[w * y + x].g * 255), 0, 255));
-				framebufferInt.push_back(std::clamp(int(framebuffer[w * y + x].b * 255), 0, 255));
+				framebufferInt.push_back(std::clamp(int(framebuffer[size_t(w * y + x)].r * 255), 0, 255));
+				framebufferInt.push_back(std::clamp(int(framebuffer[size_t(w * y + x)].g * 255), 0, 255));
+				framebufferInt.push_back(std::clamp(int(framebuffer[size_t(w * y + x)].b * 255), 0, 255));
 			}
 		}
 
