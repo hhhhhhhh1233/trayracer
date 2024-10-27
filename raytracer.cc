@@ -11,7 +11,9 @@ Raytracer::Raytracer(unsigned w, unsigned h, std::vector<Color>& frameBuffer, un
     rpp(rpp),
     bounces(bounces),
     width(w),
-    height(h)
+    height(h),
+    frustum(mat4()),
+    view(mat4())
 {
     // empty
 }
