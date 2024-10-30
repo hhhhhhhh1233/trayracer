@@ -18,7 +18,7 @@
 int main(int argc, char *argv[])
 { 
 	// Default values that can be overriden by commandline arguments
-	unsigned w = 400;
+	unsigned w = 300;
 	unsigned h = 300;
     int raysPerPixel = 1;
     int maxBounces = 5;
@@ -41,12 +41,12 @@ int main(int argc, char *argv[])
 			i++;
 			raysPerPixel = std::stoi(argv[i]);
 		}
-		else if (std::string(argv[i]).compare("-mb") == 0)
+		else if (std::string(argv[i]).compare("-b") == 0)
 		{
 			i++;
 			maxBounces = std::stoi(argv[i]);
 		}
-		else if (std::string(argv[i]).compare("-ns") == 0)
+		else if (std::string(argv[i]).compare("-s") == 0)
 		{
 			i++;
 			spheresAmount = std::stoi(argv[i]);
