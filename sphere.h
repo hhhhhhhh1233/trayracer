@@ -44,7 +44,7 @@ public:
         return material->color;
     }
 
-    Optional<HitResult> Intersect(Ray ray, float maxDist) override
+    HitResult Intersect(Ray ray, float maxDist) override
     {
         HitResult hit;
         vec3 oc = ray.b - this->center;
@@ -53,7 +53,7 @@ public:
     
         // early out if sphere is "behind" ray
         if (b > 0)
-            return Optional<HitResult>();
+            return HitResult();
 
         float a = dot(dir, dir);
         float c = dot(oc, oc) - this->radius * this->radius;
@@ -74,7 +74,7 @@ public:
                 hit.normal = (p - this->center) * (1.0f / this->radius);
                 hit.t = temp;
                 hit.object = this;
-                return Optional<HitResult>(hit);
+                return HitResult(hit);
             }
             if (temp2 < maxDist && temp2 > minDist)
             {
@@ -83,11 +83,11 @@ public:
                 hit.normal = (p - this->center) * (1.0f / this->radius);
                 hit.t = temp2;
                 hit.object = this;
-                return Optional<HitResult>(hit);
+                return HitResult(hit);
             }
         }
 
-        return Optional<HitResult>();
+        return HitResult();
     }
 
     Ray ScatterRay(Ray ray, vec3 point, vec3 normal) override
