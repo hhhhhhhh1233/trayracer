@@ -15,6 +15,23 @@
 
 #define degtorad(angle) angle * MPI / 180
 
+/// Prints info with a box around it, helps highlight the important stuff
+static void PrintAsBox(int BoxSize, std::vector<std::string> PrintStrings)
+{
+	for (auto& s : PrintStrings)
+	{
+		if (s.length() + 2 > BoxSize)
+			BoxSize = s.length() + 2;
+	}
+
+	std::cout << " +" + std::string(BoxSize, '-') + "+\n";
+	for (auto& s : PrintStrings)
+	{
+		std::cout << " | " << s << std::string(BoxSize - s.length() - 1, ' ') + "|\n";
+	}
+	std::cout << " +" + std::string(BoxSize, '-') + "+\n";
+}
+
 int main(int argc, char *argv[])
 { 
 	// Default values that can be overriden by commandline arguments
@@ -116,13 +133,16 @@ int main(int argc, char *argv[])
 		auto end = std::chrono::high_resolution_clock::now();
 		auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
 
-		std::cout << "Time: " << duration.count()/1000.0f << "\n";
-		std::cout << "Number of Rays: " << NumberOfRays << "\n";
-		std::cout << "MRays/s: " << (NumberOfRays/1'000'000.0f)/(duration.count()/1000.0f) << "\n";
-		std::cout << "Resolution: " << w << "x" << h << "\n";
-		std::cout << "Rays Per Pixel: " << raysPerPixel << "\n";
-		std::cout << "Max Bounces: " << maxBounces << "\n";
-		std::cout << "Number of Spheres: " << spheresAmount << "\n";
+		PrintAsBox(40, { 
+			"TRAYRACER INFO", "",
+			"Time " + std::to_string(duration.count()/1000.0f),
+			"Number of Rays: " + std::to_string(NumberOfRays),
+			"MRays/s: " + std::to_string((NumberOfRays/1'000'000.0f)/(duration.count()/1000.0f)),
+			"Resolution: " + std::to_string(w) + "x" + std::to_string(h),
+			"Rays Per Pixel: " + std::to_string(raysPerPixel),
+			"Max Bounces: " + std::to_string(maxBounces),
+			"Number of Sphere: " + std::to_string(spheresAmount),
+		});
 
 		std::vector<uint8_t> framebufferInt;
 
