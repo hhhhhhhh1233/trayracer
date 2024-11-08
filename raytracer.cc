@@ -42,10 +42,9 @@ Raytracer::Raytrace()
                 vec3 direction = vec3(u, v, -1.0f);
                 direction = transform(direction, this->frustum);
                 
-                Ray* ray = new Ray(get_position(this->view), direction);
-                color += this->TracePath(*ray, 0);
+                Ray ray = Ray(get_position(this->view), direction);
+                color += this->TracePath(ray, 0);
 				NumberOfTraces++;
-                delete ray;
             }
 
             // divide by number of samples per pixel, to get the average of the distribution
@@ -73,12 +72,11 @@ Raytracer::TracePath(Ray ray, unsigned n)
 
     if (Raycast(ray, hitPoint, hitNormal, hitObject, distance, this->objects))
     {
-        Ray* scatteredRay = new Ray(hitObject->ScatterRay(ray, hitPoint, hitNormal));
+        Ray scatteredRay = Ray(hitObject->ScatterRay(ray, hitPoint, hitNormal));
         if (n < this->bounces)
         {
-            return hitObject->GetColor() * this->TracePath(*scatteredRay, n + 1);
+            return hitObject->GetColor() * this->TracePath(scatteredRay, n + 1);
         }
-        delete scatteredRay;
 
         if (n == this->bounces)
         {
