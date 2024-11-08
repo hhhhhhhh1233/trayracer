@@ -58,22 +58,11 @@ get_position(mat4 m)
 inline vec3
 transform(vec3 v, mat4 m)
 {
-    //swizzle!
-    //this should be easy to vectorize! ;)
-    vec3 x = {v.x, v.x, v.x};
-    vec3 y = {v.y, v.y, v.y};
-    vec3 z = {v.z, v.z, v.z};
-    vec3 r0 = { m.m00, m.m01, m.m02 };
-    vec3 r1 = { m.m10, m.m11, m.m12 };
-    vec3 r2 = { m.m20, m.m21, m.m22 };
-    // multiply
-    vec3 a = mul(x, r0);
-    vec3 b = mul(y, r1);
-    vec3 c = mul(z, r2);
-    // add
-    vec3 res = add(a,b);
-    res = add(res,c);
-    return res;
+    return { 
+        v.x * m.m00 + v.y * m.m10 + v.z * m.m20, 
+        v.x * m.m01 + v.y * m.m11 + v.z * m.m21, 
+        v.x * m.m02 + v.y * m.m12 + v.z * m.m22 
+    };
 }
 
 //------------------------------------------------------------------------------
