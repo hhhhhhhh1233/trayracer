@@ -2,6 +2,8 @@
 #include <iostream>
 #include <random>
 #include <algorithm>
+#include <functional>
+#include "random.h"
 
 //------------------------------------------------------------------------------
 /**
@@ -16,6 +18,7 @@ Raytracer::Raytracer(unsigned w, unsigned h, std::vector<Color>& frameBuffer, un
     view(mat4())
 {
     // empty
+    Pool.Start();
 }
 
 //------------------------------------------------------------------------------
@@ -24,9 +27,11 @@ Raytracer::Raytracer(unsigned w, unsigned h, std::vector<Color>& frameBuffer, un
 unsigned int
 Raytracer::Raytrace()
 {
-    static int leet = 1337;
-    std::mt19937 generator (leet++);
-    std::uniform_real_distribution<float> dis(0.0f, 1.0f);
+    std::cout << "This is NOT multithreaded!\n";
+
+    //static int leet = 1337;
+    //std::mt19937 generator (leet++);
+    //std::uniform_real_distribution<float> dis(0.0f, 1.0f);
 
 	unsigned int NumberOfTraces = 0;
     for (int x = 0; x < this->width; ++x)
@@ -36,14 +41,17 @@ Raytracer::Raytrace()
             Color color;
             for (int i = 0; i < this->rpp; ++i)
             {
-                float u = ((float(x + dis(generator)) * (1.0f / this->width)) * 2.0f) - 1.0f;
-                float v = ((float(y + dis(generator)) * (1.0f / this->height)) * 2.0f) - 1.0f;
+                float u = ((float(x + RandomFloat()) * (1.0f / this->width)) * 2.0f) - 1.0f;
+                float v = ((float(y + RandomFloat()) * (1.0f / this->height)) * 2.0f) - 1.0f;
 
                 vec3 direction = vec3(u, v, -1.0f);
                 direction = transform(direction, this->frustum);
                 
                 Ray ray = Ray(get_position(this->view), direction);
                 color += this->TracePath(ray, 0);
+
+                //color += this->TracePath(Ray(get_position(this->view), transform(vec3(u, v, -1.0f), this->frustum)), 0);
+
 				NumberOfTraces++;
             }
 
@@ -56,6 +64,67 @@ Raytracer::Raytrace()
         }
     }
 	return NumberOfTraces;
+}
+
+unsigned int
+Raytracer::RaytraceMultithreaded(unsigned int NumberOfJobs)
+{
+    std::cout << "This is multithreaded!\n";
+
+    std::mutex zLock;
+    std::atomic<int> z(0);
+
+    std::atomic<int> DoneThreads(0);
+
+    for (int i = 0; i < NumberOfJobs; i++)
+    {
+		Pool.QueueJob([this, &zLock, &z, &DoneThreads, NumberOfJobs]() {
+            int minX, maxX;
+
+            {
+                std::unique_lock<std::mutex> lock(zLock);
+                z++;
+                minX = (this->width / NumberOfJobs) * (z - 1);
+                maxX = (this->width / NumberOfJobs) * (z);
+            }
+
+			for (int x = minX; x < maxX; ++x)
+			{
+				for (int y = 0; y < this->height; ++y)
+				{
+					Color color;
+					for (int i = 0; i < this->rpp; ++i)
+					{
+						float u = ((float(x + RandomFloat()) * (1.0f / this->width)) * 2.0f) - 1.0f;
+						float v = ((float(y + RandomFloat()) * (1.0f / this->height)) * 2.0f) - 1.0f;
+
+						vec3 direction = vec3(u, v, -1.0f);
+						direction = transform(direction, this->frustum);
+						
+						Ray ray = Ray(get_position(this->view), direction);
+						color += this->TracePath(ray, 0);
+					}
+
+					// divide by number of samples per pixel, to get the average of the distribution
+					color.r /= this->rpp;
+					color.g /= this->rpp;
+					color.b /= this->rpp;
+
+					this->frameBuffer[y * this->width + x] += color;
+				}
+			}
+
+            DoneThreads.fetch_add(1);
+		});
+    }
+
+    //std::cout << "Threads: " << Pool.Threads.size() << "\n";
+    //std::function<void()> Job = Pool.PopJob();
+    //Job();
+
+    while (DoneThreads < NumberOfJobs) {}
+
+	return this->width * this->height * this->rpp;
 }
 
 //------------------------------------------------------------------------------

@@ -40,6 +40,8 @@ int main(int argc, char *argv[])
     int raysPerPixel = 1;
     int maxBounces = 5;
 	int spheresAmount = 36;
+	bool multithread = false;
+	unsigned int NumberOfJobs = 50;
 
 	for (int i = 0; i < argc; i++)
 	{
@@ -68,9 +70,17 @@ int main(int argc, char *argv[])
 			i++;
 			spheresAmount = std::stoi(argv[i]);
 		}
+		else if (std::string(argv[i]).compare("-m") == 0)
+		{
+			multithread = true;
+		}
+		else if (std::string(argv[i]).compare("-j") == 0)
+		{
+			i++;
+			NumberOfJobs = std::stoi(argv[i]);
+		}
 	}
 
-	auto start = std::chrono::high_resolution_clock::now();
     std::vector<Color> framebuffer;
 
     framebuffer.resize(size_t(w * h));
@@ -129,12 +139,20 @@ int main(int argc, char *argv[])
 
         rt.SetViewMatrix(cameraTransform);
         
-        int NumberOfRays = rt.Raytrace();
+		int NumberOfRays;
+		auto start = std::chrono::high_resolution_clock::now();
+
+		if (multithread)
+			NumberOfRays = rt.RaytraceMultithreaded(NumberOfJobs);
+		else
+			NumberOfRays = rt.Raytrace();
+
 		auto end = std::chrono::high_resolution_clock::now();
 		auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
 
-		PrintAsBox(40, { 
+		PrintAsBox(40, {
 			"TRAYRACER INFO", "",
+			std::string("Multithreaded: ").append(multithread ? "True" : "False"),
 			"Time " + std::to_string(duration.count()/1000.0f),
 			"Number of Rays: " + std::to_string(NumberOfRays),
 			"MRays/s: " + std::to_string((NumberOfRays/1'000'000.0f)/(duration.count()/1000.0f)),

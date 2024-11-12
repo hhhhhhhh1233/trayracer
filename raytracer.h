@@ -6,6 +6,7 @@
 #include "ray.h"
 #include "object.h"
 #include <float.h>
+#include "threadpool.h"
 
 //------------------------------------------------------------------------------
 /**
@@ -18,6 +19,9 @@ public:
 
     // start raytracing!
     unsigned int Raytrace();
+
+    // same thing as above but it uses multithreading
+    unsigned int RaytraceMultithreaded(unsigned int NumberOfJobs);
 
     // add object to scene
     void AddObject(Object* obj);
@@ -65,6 +69,7 @@ public:
 
 private:
     std::vector<Object*> objects;
+    ThreadPool Pool;
 };
 
 inline void Raytracer::AddObject(Object* o)
