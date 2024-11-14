@@ -11,6 +11,7 @@
 // For multithreading
 #include <functional>
 #include <mutex>
+#include <atomic>
 #include <thread>
 #include <vector>
 #include <queue>

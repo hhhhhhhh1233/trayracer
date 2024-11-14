@@ -77,65 +77,54 @@ Raytracer::RaytraceMultithreaded(unsigned int NumberOfJobs)
     std::mutex zLock;
     std::atomic<int> z(0);
 
-    std::atomic<int> DoneThreads(0);
-
     for (int i = 0; i < NumberOfJobs; i++)
     {
         QueueJob(RayMultithreadParameters((this->width / NumberOfJobs) * i, (this->width / NumberOfJobs) * (i + 1)));
     }
 
     while (DoneThreads < NumberOfJobs) {
-        _sleep(1);
-            }
+		std::this_thread::sleep_for(std::chrono::milliseconds(1));
+	}
 
 	return this->width * this->height * this->rpp;
 }
 
 void Raytracer::RaytraceChunk(int MinY, int MaxY)
-			{
+{
     static int leet = 1337;
     std::mt19937 generator (leet++);
     std::uniform_real_distribution<float> dis(0.0f, 1.0f);
 
+
 	for (int x = 0; x < this->width; ++x)
-				{
+	{
 		for (int y = MinY; y < MaxY; ++y)
 		{
-					Color color;
-					for (int i = 0; i < this->rpp; ++i)
-					{
+			Color color;
+			for (int i = 0; i < this->rpp; ++i)
+			{
 				float u = ((float(x + dis(generator)) * (1.0f / this->width)) * 2.0f) - 1.0f;
 				float v = ((float(y + dis(generator)) * (1.0f / this->height)) * 2.0f) - 1.0f;
 				//float u = ((float(x + RandomFloat()) * (1.0f / this->width)) * 2.0f) - 1.0f;
 				//float v = ((float(y + RandomFloat()) * (1.0f / this->height)) * 2.0f) - 1.0f;
 
-						vec3 direction = vec3(u, v, -1.0f);
-						direction = transform(direction, this->frustum);
-						
-						Ray ray = Ray(get_position(this->view), direction);
-						color += this->TracePath(ray, 0);
-					}
-
-					// divide by number of samples per pixel, to get the average of the distribution
-					color.r /= this->rpp;
-					color.g /= this->rpp;
-					color.b /= this->rpp;
-
-					this->frameBuffer[y * this->width + x] += color;
-				}
+				vec3 direction = vec3(u, v, -1.0f);
+				direction = transform(direction, this->frustum);
+				
+				Ray ray = Ray(get_position(this->view), direction);
+				color += this->TracePath(ray, 0);
 			}
 
-            DoneThreads.fetch_add(1);
-		});
-    }
+			// divide by number of samples per pixel, to get the average of the distribution
+			color.r /= this->rpp;
+			color.g /= this->rpp;
+			color.b /= this->rpp;
 
-    //std::cout << "Threads: " << Pool.Threads.size() << "\n";
-    //std::function<void()> Job = Pool.PopJob();
-    //Job();
+			this->frameBuffer[y * this->width + x] += color;
+		}
+	}
 
-    while (DoneThreads < NumberOfJobs) {}
-
-	return this->width * this->height * this->rpp;
+	DoneThreads.fetch_add(1);
 }
 
 //------------------------------------------------------------------------------
@@ -275,16 +264,15 @@ Raytracer::ThreadLoop()
 	{
 		RayMultithreadParameters Params;
 		{
-			QueueMutex.lock();
-			if (MultithreadParameters.empty() || ShouldTerminate)
-			{
-				QueueMutex.unlock();
+			std::unique_lock<std::mutex> lock(QueueMutex);
+			MutexCondition.wait(lock, [this]{
+				return !MultithreadParameters.empty() || ShouldTerminate;
+			});
+			if (ShouldTerminate)
 				return;
-			}
 
 			Params = MultithreadParameters.front();
 			MultithreadParameters.pop();
-			QueueMutex.unlock();
 		}
 		RaytraceChunk(Params.MinY, Params.MaxY);
 	}
