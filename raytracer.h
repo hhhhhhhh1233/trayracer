@@ -8,20 +8,50 @@
 #include <float.h>
 #include "threadpool.h"
 
+// For multithreading
+#include <functional>
+#include <mutex>
+#include <thread>
+#include <vector>
+#include <queue>
+#include <condition_variable>
+
 //------------------------------------------------------------------------------
 /**
 */
+
+// Passed to each thread
+struct RayMultithreadParameters
+{
+    RayMultithreadParameters(int a, int b)
+    {
+        MinY = a;
+        MaxY = b;
+    }
+    RayMultithreadParameters()
+    {
+        MinY = 0;
+        MaxY = 0;
+    }
+
+    int MinY;
+    int MaxY;
+};
+
 class Raytracer
 {
 public:
     Raytracer(unsigned w, unsigned h, std::vector<Color>& frameBuffer, unsigned rpp, unsigned bounces);
-    ~Raytracer() { }
+    ~Raytracer();
 
     // start raytracing!
     unsigned int Raytrace();
 
     // same thing as above but it uses multithreading
     unsigned int RaytraceMultithreaded(unsigned int NumberOfJobs);
+
+    // same thing as above but it uses multithreading
+    void RaytraceChunk(int MinY, int MaxY);
 
     // add object to scene
     void AddObject(Object* obj);
@@ -67,9 +97,24 @@ public:
     // Go from canonical to view frustum
     mat4 frustum;
 
+    // Multithreading methods
+	void StartThreads();
+    void ThreadLoop();
+    void QueueJob(RayMultithreadParameters Params);
+    void JoinAllThreads();
+    void StopThreads();
+
 private:
+
     std::vector<Object*> objects;
-    ThreadPool Pool;
+
+    // Multithreading variables
+	std::vector<std::thread> Threads;
+    std::atomic<int> DoneThreads;
+    std::queue<RayMultithreadParameters> MultithreadParameters;
+	std::mutex QueueMutex;
+	std::condition_variable MutexCondition;
+	bool ShouldTerminate = false;
 };
 
 inline void Raytracer::AddObject(Object* o)

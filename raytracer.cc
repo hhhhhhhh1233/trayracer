@@ -17,8 +17,11 @@ Raytracer::Raytracer(unsigned w, unsigned h, std::vector<Color>& frameBuffer, un
     frustum(mat4()),
     view(mat4())
 {
-    // empty
-    Pool.Start();
+    StartThreads();
+}
+
+Raytracer::~Raytracer() {
+	StopThreads();
 }
 
 //------------------------------------------------------------------------------
@@ -78,25 +81,33 @@ Raytracer::RaytraceMultithreaded(unsigned int NumberOfJobs)
 
     for (int i = 0; i < NumberOfJobs; i++)
     {
-		Pool.QueueJob([this, &zLock, &z, &DoneThreads, NumberOfJobs]() {
-            int minX, maxX;
+        QueueJob(RayMultithreadParameters((this->width / NumberOfJobs) * i, (this->width / NumberOfJobs) * (i + 1)));
+    }
 
-            {
-                std::unique_lock<std::mutex> lock(zLock);
-                z++;
-                minX = (this->width / NumberOfJobs) * (z - 1);
-                maxX = (this->width / NumberOfJobs) * (z);
+    while (DoneThreads < NumberOfJobs) {
+        _sleep(1);
             }
 
-			for (int x = minX; x < maxX; ++x)
+	return this->width * this->height * this->rpp;
+}
+
+void Raytracer::RaytraceChunk(int MinY, int MaxY)
 			{
-				for (int y = 0; y < this->height; ++y)
+    static int leet = 1337;
+    std::mt19937 generator (leet++);
+    std::uniform_real_distribution<float> dis(0.0f, 1.0f);
+
+	for (int x = 0; x < this->width; ++x)
 				{
+		for (int y = MinY; y < MaxY; ++y)
+		{
 					Color color;
 					for (int i = 0; i < this->rpp; ++i)
 					{
-						float u = ((float(x + RandomFloat()) * (1.0f / this->width)) * 2.0f) - 1.0f;
-						float v = ((float(y + RandomFloat()) * (1.0f / this->height)) * 2.0f) - 1.0f;
+				float u = ((float(x + dis(generator)) * (1.0f / this->width)) * 2.0f) - 1.0f;
+				float v = ((float(y + dis(generator)) * (1.0f / this->height)) * 2.0f) - 1.0f;
+				//float u = ((float(x + RandomFloat()) * (1.0f / this->width)) * 2.0f) - 1.0f;
+				//float v = ((float(y + RandomFloat()) * (1.0f / this->height)) * 2.0f) - 1.0f;
 
 						vec3 direction = vec3(u, v, -1.0f);
 						direction = transform(direction, this->frustum);
@@ -224,4 +235,67 @@ Raytracer::Skybox(vec3 direction)
     float t = 0.5*(direction.y + 1.0);
     vec3 vec = vec3(1.0, 1.0, 1.0) * (1.0 - t) + vec3(0.5, 0.7, 1.0) * t;
     return {(float)vec.x, (float)vec.y, (float)vec.z};
+}
+
+void 
+Raytracer::StopThreads()
+{
+	{
+		std::unique_lock<std::mutex> lock(QueueMutex);
+		ShouldTerminate = true;
+	}
+	MutexCondition.notify_all();
+	JoinAllThreads();
+}
+
+void 
+Raytracer::JoinAllThreads()
+{
+	for (auto& Thread : Threads)
+	{
+		Thread.join();
+	}
+	Threads.clear();
+}
+
+void 
+Raytracer::StartThreads()
+{
+	const int ThreadsNum = std::thread::hardware_concurrency();
+	for (int i = 0; i < ThreadsNum; i++)
+	{
+		Threads.emplace_back(std::thread(&Raytracer::ThreadLoop, this));
+	}
+}
+
+void 
+Raytracer::ThreadLoop()
+{
+	while (true)
+	{
+		RayMultithreadParameters Params;
+		{
+			QueueMutex.lock();
+			if (MultithreadParameters.empty() || ShouldTerminate)
+			{
+				QueueMutex.unlock();
+				return;
+			}
+
+			Params = MultithreadParameters.front();
+			MultithreadParameters.pop();
+			QueueMutex.unlock();
+		}
+		RaytraceChunk(Params.MinY, Params.MaxY);
+	}
+}
+
+void 
+Raytracer::QueueJob(RayMultithreadParameters Params)
+{
+	{
+		std::unique_lock<std::mutex> lock(QueueMutex);
+		MultithreadParameters.push(Params);
+	}
+	MutexCondition.notify_one();
 }
