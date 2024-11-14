@@ -160,7 +160,7 @@ Raytracer::TracePath(Ray ray, unsigned n)
 /**
 */
 bool
-Raytracer::Raycast(Ray ray, vec3& hitPoint, vec3& hitNormal, Object*& hitObject, float& distance, std::vector<Object*> world)
+Raytracer::Raycast(Ray ray, vec3& hitPoint, vec3& hitNormal, Object*& hitObject, float& distance, std::vector<Object*> const& world)
 {
     bool isHit = false;
     HitResult closestHit;
