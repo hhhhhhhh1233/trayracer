@@ -30,8 +30,6 @@ Raytracer::~Raytracer() {
 unsigned int
 Raytracer::Raytrace()
 {
-    std::cout << "This is NOT multithreaded!\n";
-
     //static int leet = 1337;
     //std::mt19937 generator (leet++);
     //std::uniform_real_distribution<float> dis(0.0f, 1.0f);
@@ -71,10 +69,10 @@ Raytracer::Raytrace()
 unsigned int
 Raytracer::RaytraceMultithreaded(unsigned int NumberOfJobs)
 {
-    std::cout << "This is multithreaded!\n";
-
     std::mutex zLock;
     std::atomic<int> z(0);
+
+    DoneThreads.store(0);
 
     for (int i = 0; i < NumberOfJobs; i++)
     {
