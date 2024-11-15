@@ -55,6 +55,11 @@ int main(int argc, char *argv[])
 			i++;
 			h = std::stoi(argv[i]);
 		}
+		else if (std::string(argv[i]).compare("-wh") == 0)
+		{
+			i++;
+			w = h = std::stoi(argv[i]);
+		}
 		else if (std::string(argv[i]).compare("-rpp") == 0)
 		{
 			i++;
