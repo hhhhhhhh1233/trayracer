@@ -6,7 +6,6 @@
 #include "ray.h"
 #include "object.h"
 #include <float.h>
-#include "threadpool.h"
 
 // For multithreading
 #include <functional>
@@ -72,6 +71,7 @@ public:
     // trace a path and return intersection color
     // n is bounce depth
     Color TracePath(Ray ray, unsigned n);
+    Color TracePathNoRecursion(Ray ray, unsigned n);
 
     // get the color of the skybox in a direction
     Color Skybox(vec3 direction);

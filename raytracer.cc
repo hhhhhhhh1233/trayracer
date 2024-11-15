@@ -51,9 +51,8 @@ Raytracer::Raytrace()
                 direction = transform(direction, this->frustum);
                 
                 Ray ray = Ray(get_position(this->view), direction);
-                color += this->TracePath(ray, 0);
-
-                //color += this->TracePath(Ray(get_position(this->view), transform(vec3(u, v, -1.0f), this->frustum)), 0);
+                color += this->TracePathNoRecursion(ray, this->bounces);
+                //color += this->TracePath(ray, 0);
 
 				NumberOfTraces++;
             }
@@ -110,9 +109,10 @@ void Raytracer::RaytraceChunk(int MinY, int MaxY)
 
 				vec3 direction = vec3(u, v, -1.0f);
 				direction = transform(direction, this->frustum);
-				
+
 				Ray ray = Ray(get_position(this->view), direction);
-				color += this->TracePath(ray, 0);
+				color += this->TracePathNoRecursion(ray, this->bounces);
+				//color += this->TracePath(ray, 0);
 			}
 
 			// divide by number of samples per pixel, to get the average of the distribution
@@ -123,14 +123,45 @@ void Raytracer::RaytraceChunk(int MinY, int MaxY)
 			this->frameBuffer[y * this->width + x] += color;
 		}
 	}
-
-	DoneThreads.fetch_add(1);
+    DoneThreads.fetch_add(1);
 }
 
 //------------------------------------------------------------------------------
 /**
  * @parameter n - the current bounce level
 */
+Color
+Raytracer::TracePathNoRecursion(Ray ray, unsigned n)
+{
+    vec3 hitPoint;
+    vec3 hitNormal;
+    Object* hitObject = nullptr;
+    float distance = FLT_MAX;
+
+    Color color = { 1,1,1 };
+
+    Ray CurrentRay = ray;
+
+    for (int i = 0; i < this->bounces; i++)
+    {
+        if (Raycast(CurrentRay, hitPoint, hitNormal, hitObject, distance, this->objects))
+        {
+			color = color * hitObject->GetColor();
+			CurrentRay = Ray(hitObject->ScatterRay(CurrentRay, hitPoint, hitNormal));
+        }
+        else
+        {
+			color = color * this->Skybox(CurrentRay.m);
+            break;
+        }
+
+        if (i == this->bounces)
+            return { 0,0,0 };
+    }
+
+    return color;
+}
+
 Color
 Raytracer::TracePath(Ray ray, unsigned n)
 {
