@@ -76,7 +76,7 @@ Raytracer::RaytraceMultithreaded(unsigned int NumberOfJobs)
 
     for (int i = 0; i < NumberOfJobs; i++)
     {
-        QueueJob(RayMultithreadParameters((this->width / NumberOfJobs) * i, (this->width / NumberOfJobs) * (i + 1), 1337 + i));
+        QueueJob(RayMultithreadParameters((this->width / NumberOfJobs) * i, (this->width / NumberOfJobs) * (i + 1)));
     }
 
     while (DoneThreads < NumberOfJobs) {
@@ -91,9 +91,9 @@ void Raytracer::RaytraceChunk(RayMultithreadParameters Param)
     int MinY = Param.MinY;
     int MaxY = Param.MaxY;
 
-    //static int leet = 1337;
-    //std::mt19937 generator (leet++);
-    std::mt19937 generator (Param.RandomSeed);
+    static int leet = 1337;
+    std::mt19937 generator (leet++);
+
     std::uniform_real_distribution<float> dis(0.0f, 1.0f);
 
 	for (int x = 0; x < this->width; ++x)

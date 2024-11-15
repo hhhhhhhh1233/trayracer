@@ -23,23 +23,20 @@
 // Passed to each thread
 struct RayMultithreadParameters
 {
-    RayMultithreadParameters(int a, int b, int c)
+    RayMultithreadParameters(int a, int b)
     {
         MinY = a;
         MaxY = b;
-        RandomSeed = c;
     }
 
     RayMultithreadParameters()
     {
         MinY = 0;
         MaxY = 0;
-		RandomSeed = 0;
     }
 
     int MinY;
     int MaxY;
-    int RandomSeed;
 };
 
 class Raytracer
