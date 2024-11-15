@@ -23,19 +23,23 @@
 // Passed to each thread
 struct RayMultithreadParameters
 {
-    RayMultithreadParameters(int a, int b)
+    RayMultithreadParameters(int a, int b, int c)
     {
         MinY = a;
         MaxY = b;
+        RandomSeed = c;
     }
+
     RayMultithreadParameters()
     {
         MinY = 0;
         MaxY = 0;
+		RandomSeed = 0;
     }
 
     int MinY;
     int MaxY;
+    int RandomSeed;
 };
 
 class Raytracer
@@ -51,7 +55,7 @@ public:
     unsigned int RaytraceMultithreaded(unsigned int NumberOfJobs);
 
     // same thing as above but it uses multithreading
-    void RaytraceChunk(int MinY, int MaxY);
+    void RaytraceChunk(RayMultithreadParameters Param);
 
     // add object to scene
     void AddObject(Object* obj);
