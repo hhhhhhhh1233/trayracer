@@ -1,21 +1,5 @@
 # Trayracer
 
-Really really poorly written (by design) raytracer for use as a worst case scenario within programming courses.
+Here's the report I wrote documenting my steps in trying to improve the performance.
 
-## Build instructions
-
-Windows:
-
-* You can either generate visual studio solution by using CMake, or just open the folder within VSCode and build/run.
-
-Linux:
-
-* Untested, but should run with CMake and possibly even via VSCode.
-
-If you have problems with missing libraries, install (sudo apt-get install ...):
-* libgl-dev
-* xorg-dev
-* libglu1-mesa-dev
-* gdb
-
-VSCode requires the C/C++ extension to be able to use the debugger.
+[Profiling and Optimization - Report.pdf](https://github.com/user-attachments/files/17818739/Profiling.and.Optimization.-.Report.pdf)
